@@ -63,14 +63,12 @@ class split_element{
 public class VQ {
 
     public int[][] originalImage;
-    public String nameOfCompress = "CodeBook.txt";
+    public String nameOfCodeBook = "CodeBook.txt";
     public String nameOfDecompress = "Decompressed.jpg";
     Scanner sc;
     Formatter out;
 
     public static int[][] readImage ( String filePath ) {
-        int width = 0;
-        int height = 0;
         File file = new File ( filePath );
         BufferedImage image = null;
         try{
@@ -78,8 +76,8 @@ public class VQ {
         } catch (IOException e){
             e.printStackTrace ( );
         }
-        width = image.getWidth ( );
-        height = image.getHeight ( );
+        int width = image.getWidth ( );
+        int height = image.getHeight ( );
         int[][] pixels = new int[ height ][ width ];
         for ( int x = 0 ; x < width ; x++ ) {
             for ( int y = 0 ; y < height ; y++ ) {
@@ -94,8 +92,8 @@ public class VQ {
         }
         return pixels;
     }
-    public static void writeImage ( int[][] pixels ,String outputFilePath ,int width ,int height ) {
-        File fileout = new File ( outputFilePath );
+    public static void writeImage ( int[][] pixels ,String outPath ,int width ,int height ) {
+        File fileOut = new File ( outPath );
         BufferedImage image2 = new BufferedImage ( width ,height ,BufferedImage.TYPE_INT_RGB );
 
         for ( int x = 0 ; x < width ; x++ ) {
@@ -104,7 +102,7 @@ public class VQ {
             }
         }
         try{
-            ImageIO.write ( image2 ,"jpg" ,fileout );
+            ImageIO.write ( image2 ,"jpg" ,fileOut );
         } catch (IOException e){
             e.printStackTrace ( );
         }
@@ -304,7 +302,7 @@ public class VQ {
             e.printStackTrace ();
         }
     }
-    public void close_file ( ) {
+    public void close_file_Sc ( ) {    //close for Scanner
         sc.close ( );
     }
     public void openfile ( String pass ) {
@@ -314,7 +312,8 @@ public class VQ {
             e.printStackTrace (  );
         }
     }
-    public void closefile ( ) {
+    public void
+    closeFileF ( ) {    //close for Formatter
         out.close ( );
     }
     void write ( String code ) {
@@ -322,8 +321,8 @@ public class VQ {
         out.format ( "%n" );
         out.flush ( );
     }
-    void SaveCodeBookCompImg ( ArrayList < vector > codeBook ,int[][] comp_image ) {
-        openfile ( nameOfCompress );
+    void writeCodeBook ( ArrayList < vector > codeBook ,int[][] compressedImg ) {
+        openfile ( nameOfCodeBook );
         String codeBookSize = "" + codeBook.size ( );
         String WidthOfBlock = "" + codeBook.get ( 0 ).width;
         String heightOfBlock = "" + codeBook.get ( 0 ).height;
@@ -342,20 +341,20 @@ public class VQ {
             }
         }
 
-        String com_image_height = "" + comp_image.length;
-        write ( com_image_height );
-        String com_image_width = "" + comp_image[ 0 ].length;
-        write ( com_image_width );
+        String compressedImgHeight = "" + compressedImg.length;
+        write ( compressedImgHeight );
+        String compressedImgWidth = "" + compressedImg[ 0 ].length;
+        write ( compressedImgWidth );
 
-        for ( int i = 0 ; i < comp_image.length ; i++ ) {
+        for ( int i = 0 ; i < compressedImg.length ; i++ ) {
             String row = "";
 
-            for ( int j = 0 ; j < comp_image[ 0 ].length ; j++ ) {
-                row += comp_image[ i ][ j ] + " ";
+            for ( int j = 0 ; j < compressedImg[ 0 ].length ; j++ ) {
+                row += compressedImg[ i ][ j ] + " ";
             }
             write ( row );
         }
-        closefile ( );
+        closeFileF ( );
     }
     void CompressImage ( ArrayList< vector > codeBook ,vector[][] vectors ) {
         int Rows = vectors.length;
@@ -385,7 +384,7 @@ public class VQ {
                 compress_Image[ i ][ j ] = index;
             }
         }
-        SaveCodeBookCompImg ( codeBook ,compress_Image );
+        writeCodeBook ( codeBook ,compress_Image );
     }
     void Quantization ( int numoflevels ,ArrayList<vector> data ,int widthOfVector ,int heightOfVector ,vector[][] vectors ,int numOfRows ,int numOfCols ) {
         ArrayList<vector> Averages = new ArrayList<> ( );
@@ -433,8 +432,8 @@ public class VQ {
         CompressImage ( codeBook ,vectors );
 
     }
-    int[][] Reconstruct ( ArrayList < vector > codeBook , int[][] comp_image ) {
-        open_file ( nameOfCompress );
+    int[][] Reconstruct ( ArrayList < vector > codeBook , int[][] compressedImg ) {
+        open_file ( nameOfCodeBook );
         int codeBookSize = Integer.parseInt ( sc.nextLine ( ) );
         int WidthOfBlock = Integer.parseInt ( sc.nextLine ( ) );
         int heightOfBlock = Integer.parseInt ( sc.nextLine ( ) );
@@ -453,20 +452,20 @@ public class VQ {
             codeBook.add ( currentVector );
         }
 
-        int com_image_height = Integer.parseInt ( sc.nextLine ( ) );
-        int com_image_width = Integer.parseInt ( sc.nextLine ( ) );
-        comp_image = new int[ com_image_height ][ com_image_width ];
+        int compressedImgHeight = Integer.parseInt ( sc.nextLine ( ) );
+        int compressedImgWidth = Integer.parseInt ( sc.nextLine ( ) );
+        compressedImg = new int[ compressedImgHeight ][ compressedImgWidth ];
 
-        for ( int i = 0 ; i < comp_image.length ; i++ ) {
+        for ( int i = 0 ; i < compressedImg.length ; i++ ) {
             String line = sc.nextLine ( );
             String[] row = line.split ( " " );
 
-            for ( int j = 0 ; j < comp_image[ 0 ].length ; j++ ) {
-                comp_image[ i ][ j ] = Integer.parseInt ( row[ j ] );
+            for ( int j = 0 ; j < compressedImg[ 0 ].length ; j++ ) {
+                compressedImg[ i ][ j ] = Integer.parseInt ( row[ j ] );
             }
         }
-        close_file ( );
-        return comp_image;
+        close_file_Sc ( );
+        return compressedImg;
     }
     void Decompress ( ) {
         ArrayList < vector > codeBook = new ArrayList < vector > ( );
@@ -482,14 +481,11 @@ public class VQ {
                 int cornerx = i * cur.height;
                 int cornery = j * cur.width;
 
-
                 for ( int h = 0 ; h < cur.height ; h++ ) {
-
-                    for ( int k = 0 ; k < cur.width ; k++ ) {
-                        Decomp_image[ cornerx + h ][ cornery + k ] = (int) cur.data[ h ][ k ];
+                    for ( int w = 0 ; w < cur.width ; w++ ) {
+                        Decomp_image[ cornerx + h ][ cornery + w ] = (int) cur.data[ h ][ w ];
                     }
                 }
-
             }
         }
         writeImage ( Decomp_image , nameOfDecompress , Decomp_image[ 0 ].length , Decomp_image.length );
